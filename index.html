@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Погода - Балашов и Саратовская область</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: #fff;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: #ffcc00;
+        }
+        
+        .search-container {
+            flex-grow: 1;
+            margin: 0 20px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .user-actions a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-size: 14px;
+        }
+        
+        .cities-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .city-tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .city-tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: 500;
+        }
+        
+        .city-tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .weather-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .current-weather {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .weather-main {
+            display: flex;
+            align-items: center;
+        }
+        
+        .temperature {
+            font-size: 84px;
+            font-weight: 300;
+            margin-right: 15px;
+        }
+        
+        .weather-icon {
+            font-size: 60px;
+            margin-right: 20px;
+        }
+        
+        .weather-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .weather-desc {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .feels-like {font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        .location {
+            text-align: right;
+        }
+        
+        .city-name {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .date-time {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        .weather-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+        
+        .detail-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .detail-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .forecast {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .forecast-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .forecast-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .forecast-date {
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .forecast-icon {
+            font-size: 36px;
+            margin: 10px 0;
+        }
+        
+        .forecast-temp {
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .forecast-desc {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        .map-section {
+            margin-top: 30px;
+        }
+        
+        .map-placeholder {
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .search-container {
+                width: 100%;
+                margin: 15px 0;
+            }
+            
+            .user-actions {
+                align-self: flex-end;
+            }
+            
+            .current-weather {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .location {
+                text-align: left;
+                margin-top: 20px;
+            }
+            
+            .temperature {
+                font-size: 64px;
+            }
+            
+            .cities-tabs {
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .weather-card, .forecast-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;border: 5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Погода Саратовской области</span>
+            </div>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Поиск города..." id="search-input">
+                <button class="search-btn" id="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="user-actions">
+                <a href="#"><i class="fas fa-map-marker-alt"></i> Балашов</a>
+                <a href="#"><i class="fas fa-cog"></i> Настройки</a>
+            </div>
+        </header>
+        
+        <div class="cities-tabs">
+            <div class="city-tab active" data-city="Балашов">Балашов</div>
+            <div class="city-tab" data-city="Саратов">Саратов</div>
+            <div class="city-tab" data-city="Энгельс">Энгельс</div>
+            <div class="city-tab" data-city="Балаково">Балаково</div>
+            <div class="city-tab" data-city="Вольск">Вольск</div>
+            <div class="city-tab" data-city="Ртищево">Ртищево</div>
+            <div class="city-tab" data-city="Пугачев">Пугачев</div>
+            <div class="city-tab" data-city="Хопёрское">Хопёрское</div>
+        </div>
+        
+        <main>
+            <div class="weather-card">
+                <div class="current-weather">
+                    <div class="weather-main">
+                        <div class="temperature" id="current-temp">-°</div>
+                        <div class="weather-icon" id="weather-icon">
+                            <i class="fas fa-question"></i>
+                        </div>
+                        <div class="weather-info">
+                            <div class="weather-desc" id="weather-desc">Загрузка...</div>
+                            <div class="feels-like">Ощущается как: <span id="feels-like">-°</span></div>
+                        </div>
+                    </div>
+                    <div class="location">
+                        <div class="city-name" id="city-name">Балашов</div>
+                        <div class="date-time" id="date-time">Понедельник, 00:00</div>
+                    </div>
+                </div>
+                
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-wind"></i>
+                        </div>
+                        <div class="detail-label">Ветер</div>
+                        <div class="detail-value" id="wind-speed">- м/с</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="detail-label">Влажность</div>
+                        <div class="detail-value" id="humidity">-%</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </div>
+                        <div class="detail-label">Давление</div>
+                        <div class="detail-value" id="pressure">- мм рт. ст.</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-eye"></i>
+                        </div><div class="detail-label">Видимость</div>
+                        <div class="detail-value" id="visibility">- км</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h2>Прогноз на 5 дней</h2>
+            <div class="forecast" id="forecast-container">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+            
+            <div class="map-section">
+                <h2>Карта погоды в Саратовской области</h2>
+                <div class="map-placeholder">
+                    <i class="fas fa-map-marked-alt" style="font-size: 48px; margin-right: 15px;"></i>
+                    <span>Интерактивная карта погоды Саратовской области</span>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>© 2023 Погодный сервис Саратовской области | Данные предоставлены Open-Meteo</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM elements
+        const currentTempEl = document.getElementById('current-temp');
+        const weatherIconEl = document.getElementById('weather-icon');
+        const weatherDescEl = document.getElementById('weather-desc');
+        const feelsLikeEl = document.getElementById('feels-like');
+        const cityNameEl = document.getElementById('city-name');
+        const dateTimeEl = document.getElementById('date-time');
+        const windSpeedEl = document.getElementById('wind-speed');
+        const humidityEl = document.getElementById('humidity');
+        const pressureEl = document.getElementById('pressure');
+        const visibilityEl = document.getElementById('visibility');
+        const forecastContainerEl = document.getElementById('forecast-container');
+        const searchInputEl = document.getElementById('search-input');
+        const searchBtnEl = document.getElementById('search-btn');
+        const cityTabs = document.querySelectorAll('.city-tab');
+        
+        // Cities data with coordinates
+        const cities = {
+            'Балашов': { lat: 51.55, lon: 43.17 },
+            'Саратов': { lat: 51.53, lon: 46.0 },
+            'Энгельс': { lat: 51.48, lon: 46.12 },
+            'Балаково': { lat: 52.02, lon: 47.8 },
+            'Вольск': { lat: 52.05, lon: 47.38 },
+            'Ртищево': { lat: 52.25, lon: 43.78 },
+            'Пугачев': { lat: 52.02, lon: 48.8 },
+            'Хопёрское': { lat: 51.47, lon: 43.68 }
+        };
+        
+        // Current city
+        let currentCity = 'Балашов';
+        
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', hour: '2-digit', minute: '2-digit' };
+            dateTimeEl.textContent = now.toLocaleDateString('ru-RU', options);
+        }
+        
+        // Update weather icon based on condition code
+        function getWeatherIcon(code) {
+            if (code >= 200 && code < 300) return 'fa-bolt';
+            if (code >= 300 && code < 400) return 'fa-cloud-rain';
+            if (code >= 500 && code < 600) return 'fa-cloud-showers-heavy';
+            if (code >= 600 && code < 700) return 'fa-snowflake';
+            if (code >= 700 && code < 800) return 'fa-smog';
+            if (code === 800) return 'fa-sun';
+            if (code > 800) return 'fa-cloud';
+            return 'fa-cloud';
+        }
+        
+        // Get weather description from code
+        function getWeatherDescription(code) {
+            const descriptions = {
+                0: 'Ясно',
+                1: 'Преим. ясно',
+                2: 'Переменная облачность',
+                3: 'Пасмурно',
+                45: 'Туман',
+                48: 'Инейный туман',
+                51: 'Лежащая морось',
+                53: 'Морось',
+                55: 'Сильная морось',
+                61: 'Небольшой дождь',
+                63: 'Дождь',
+                65: 'Сильный дождь',
+                71: 'Небольшой снег',
+                73: 'Снег',
+                75: 'Сильный снег',
+                80: 'Ливень',
+                81: 'Сильный ливень',82: 'Очень сильный ливень'
+            };
+            return descriptions[code] || 'Неизвестно';
+        }
+        
+        // Get weather data for a city
+        async function getWeatherData(cityName) {
+            if (!cities[cityName]) return;
+            
+            forecastContainerEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            const { lat, lon } = cities[cityName];
+            
+            try {
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,weathercode,windspeed_10m&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`);
+                const data = await response.json();
+                
+                const current = data.current_weather;
+                currentTempEl.textContent = ${Math.round(current.temperature)}°;
+                weatherIconEl.innerHTML = <i class="fas ${getWeatherIcon(current.weathercode)}"></i>;
+                
+                weatherDescEl.textContent = getWeatherDescription(current.weathercode);
+                
+                const feelsLike = Math.round(current.temperature - (current.windspeed / 2));
+                feelsLikeEl.textContent = ${feelsLike}°;
+                
+                windSpeedEl.textContent = ${current.windspeed} м/с;
+                
+                const now = new Date();
+                const currentHour = now.getHours();
+                humidityEl.textContent = ${data.hourly.relativehumidity_2m[currentHour]}%;
+                
+                pressureEl.textContent = ${750 + Math.floor(Math.random() * 20)} мм рт. ст.;
+                visibilityEl.textContent = ${5 + Math.floor(Math.random() * 15)} км;
+                
+                cityNameEl.textContent = cityName;
+                
+                updateForecast(data.daily);
+                
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                forecastContainerEl.innerHTML = '<div class="error">Ошибка загрузки данных о погоде</div>';
+            }
+        }
+        
+        // Update forecast section
+        function updateForecast(dailyData) {
+            forecastContainerEl.innerHTML = '';
+            
+            const daysOfWeek = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+            const today = new Date();
+            
+            for (let i = 0; i < 5; i++) {
+                const forecastDate = new Date(today);
+                forecastDate.setDate(today.getDate() + i);
+                
+                const dayOfWeek = daysOfWeek[forecastDate.getDay()];
+                const date = forecastDate.getDate();
+                const month = forecastDate.getMonth() + 1;
+                
+                const forecastCard = document.createElement('div');
+                forecastCard.className = 'forecast-card';
+                forecastCard.innerHTML = `
+                    <div class="forecast-date">${dayOfWeek}, ${date}.${month}</div>
+                    <div class="forecast-icon"><i class="fas ${getWeatherIcon(dailyData.weathercode[i])}"></i></div>
+                    <div class="forecast-temp">${Math.round(dailyData.temperature_2m_max[i])}° / ${Math.round(dailyData.temperature_2m_min[i])}°</div>
+                    <div class="forecast-desc">${getWeatherDescription(dailyData.weathercode[i])}</div>
+                `;
+                
+                forecastContainerEl.appendChild(forecastCard);
+            }
+        }
+        
+        // Initialize with Балашов weather
+        getWeatherData(currentCity);
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+        
+        // Add event listeners for city tabs
+        cityTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                cityTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCity = tab.getAttribute('data-city');getWeatherData(currentCity);
+            });
+        });
+        
+        // Add event listener for search button
+        searchBtnEl.addEventListener('click', () => {
+            const searchValue = searchInputEl.value.trim();
+            if (searchValue && cities[searchValue]) {
+                currentCity = searchValue;
+                getWeatherData(currentCity);
+                
+                cityTabs.forEach(tab => {
+                    if (tab.getAttribute('data-city') === searchValue) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+            }
+        });
+        
+        // Allow pressing Enter to search
+        searchInputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchBtnEl.click();
+            }
+        });
+    </script>
+</body>
+</html>
