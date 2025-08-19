@@ -154,7 +154,8 @@
             margin-bottom: 10px;
         }
         
-        .feels-like {font-size: 16px;
+        .feels-like {
+            font-size: 16px;
             opacity: 0.8;
         }
         
@@ -321,7 +322,8 @@
         
         .spinner {
             width: 50px;
-            height: 50px;border: 5px solid rgba(255, 255, 255, 0.2);
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s linear infinite;
@@ -412,7 +414,8 @@
                     <div class="detail-item">
                         <div class="detail-icon">
                             <i class="fas fa-eye"></i>
-                        </div><div class="detail-label">Видимость</div>
+                        </div>
+                        <div class="detail-label">Видимость</div>
                         <div class="detail-value" id="visibility">- км</div>
                     </div>
                 </div>
@@ -507,7 +510,8 @@
                 73: 'Снег',
                 75: 'Сильный снег',
                 80: 'Ливень',
-                81: 'Сильный ливень',82: 'Очень сильный ливень'
+                81: 'Сильный ливень',
+                82: 'Очень сильный ливень'
             };
             return descriptions[code] || 'Неизвестно';
         }
@@ -525,22 +529,22 @@
                 const data = await response.json();
                 
                 const current = data.current_weather;
-                currentTempEl.textContent = ${Math.round(current.temperature)}°;
-                weatherIconEl.innerHTML = <i class="fas ${getWeatherIcon(current.weathercode)}"></i>;
+                currentTempEl.textContent = `${Math.round(current.temperature)}°`;
+                weatherIconEl.innerHTML = `<i class="fas ${getWeatherIcon(current.weathercode)}"></i>`;
                 
                 weatherDescEl.textContent = getWeatherDescription(current.weathercode);
                 
                 const feelsLike = Math.round(current.temperature - (current.windspeed / 2));
-                feelsLikeEl.textContent = ${feelsLike}°;
+                feelsLikeEl.textContent = `${feelsLike}°`;
                 
-                windSpeedEl.textContent = ${current.windspeed} м/с;
+                windSpeedEl.textContent = `${current.windspeed} м/с`;
                 
                 const now = new Date();
                 const currentHour = now.getHours();
-                humidityEl.textContent = ${data.hourly.relativehumidity_2m[currentHour]}%;
+                humidityEl.textContent = `${data.hourly.relativehumidity_2m[currentHour]}%`;
                 
-                pressureEl.textContent = ${750 + Math.floor(Math.random() * 20)} мм рт. ст.;
-                visibilityEl.textContent = ${5 + Math.floor(Math.random() * 15)} км;
+                pressureEl.textContent = `${750 + Math.floor(Math.random() * 20)} мм рт. ст.`;
+                visibilityEl.textContent = `${5 + Math.floor(Math.random() * 15)} км`;
                 
                 cityNameEl.textContent = cityName;
                 
@@ -590,7 +594,8 @@
             tab.addEventListener('click', () => {
                 cityTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                currentCity = tab.getAttribute('data-city');getWeatherData(currentCity);
+                currentCity = tab.getAttribute('data-city');
+                getWeatherData(currentCity);
             });
         });
         
