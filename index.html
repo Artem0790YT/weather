@@ -292,6 +292,53 @@
             font-weight: 500;
         }
         
+        /* Опрос про дождь */
+        .rain-poll {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .poll-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .poll-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .poll-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: transparent;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .poll-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .poll-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .poll-result {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
         /* Почасовой прогноз */
         .hourly-forecast {
             background: rgba(255, 255, 255, 0.1);
@@ -418,6 +465,28 @@
             border-radius: 12px;
         }
         
+        /* Предупреждения */
+        .warnings {
+            background: rgba(255, 100, 100, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .warning-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #ff6b6b;
+        }
+        
+        .warning-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
         /* Дополнительная информация */
         .additional-info {
             background: rgba(255, 255, 255, 0.1);
@@ -498,12 +567,87 @@
             .map-container {
                 height: 250px;
             }
+            
+            .poll-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        /* Запрос геолокации */
+        .location-permission {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+        
+        .permission-box {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .permission-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .permission-text {
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        
+        .permission-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .permission-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .permission-btn.allow {
+            background: #4b6cb7;
+            color: white;
+        }
+        
+        .permission-btn.deny {
+            background: #e0e0e0;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <!-- Анимации погоды -->
     <div class="weather-animation" id="weatherAnimation"></div>
+
+    <!-- Запрос геолокации -->
+    <div class="location-permission" id="locationPermission">
+        <div class="permission-box">
+            <h3 class="permission-title">Доступ к местоположению</h3>
+            <p class="permission-text">Разрешите доступ к вашему местоположению для автоматического определения погоды</p>
+            <div class="permission-buttons">
+                <button class="permission-btn allow" id="allowLocation">Разрешить</button>
+                <button class="permission-btn deny" id="denyLocation">Отказать</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Уведомление об установке -->
     <div class="install-prompt" id="installPrompt">
@@ -527,9 +671,16 @@
             </div>
             <div class="user-actions">
                 <a href="#" id="refresh-btn"><i class="fas fa-sync-alt"></i></a>
+                <a href="#" id="location-btn"><i class="fas fa-location-arrow"></i></a>
                 <a href="#" id="install-icon"><i class="fas fa-download"></i></a>
             </div>
         </header>
+
+        <!-- Предупреждения -->
+        <div class="warnings" id="warnings-container" style="display: none;">
+            <div class="warning-title" id="warning-title">Сильный ветер</div>
+            <div class="warning-text" id="warning-text">Предупреждение Гидрометцентра России. Действует до 21 августа.</div>
+        </div>
 
         <!-- Текущая погода -->
         <div class="current-weather">
@@ -571,6 +722,16 @@
                     <div class="detail-value" id="visibility">- км</div>
                 </div>
             </div>
+        </div>
+
+        <!-- Опрос про дождь -->
+        <div class="rain-poll" id="rain-poll" style="display: none;">
+            <div class="poll-title">Идёт дождь?</div>
+            <div class="poll-buttons">
+                <button class="poll-btn" data-answer="yes">Да</button>
+                <button class="poll-btn" data-answer="no">Нет</button>
+            </div>
+            <div class="poll-result" id="poll-result">В ближайшие 2 часа осадков не ожидается</div>
         </div>
 
         <!-- Почасовой прогноз -->
@@ -621,50 +782,67 @@
         </div>
 
         <footer>
-            <p>© 2025 Погодный сервис | Данные обновляются ежечасно</p>
+            <p>© 2024 Погодный сервис | Данные обновляются ежечасно</p>
         </footer>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Конфигурация
-        const CITIES = {
-            'Балашов': { lat: 51.55, lon: 43.17 },
-            'Саратов': { lat: 51.53, lon: 46.0 },
-            'Энгельс': { lat: 51.48, lon: 46.12 },
-            'Балаково': { lat: 52.02, lon: 47.8 },
-            'Вольск': { lat: 52.05, lon: 47.38 },
-            'Ртищево': { lat: 52.25, lon: 43.78 },
-            'Пугачев': { lat: 52.02, lon: 48.8 },
-            'Село Хопёрское': { lat: 51.47, lon: 43.68 }
-        };
-
+        // Основные переменные
         let currentCity = 'Балашов';
         let map = null;
         let deferredPrompt = null;
+        let userLocation = null;
+        let currentWeatherData = null;
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            initWeather();
             initMap();
             setupEventListeners();
             setupInstallPrompt();
             updateDateTime();
             setInterval(updateDateTime, 60000);
+            
+            // Проверяем сохранённую геолокацию
+            const savedLocation = localStorage.getItem('userLocation');
+            if (savedLocation) {
+                userLocation = JSON.parse(savedLocation);
+                getWeatherDataByCoords(userLocation.lat, userLocation.lon, 'Ваше местоположение');
+            } else {
+                // Показываем запрос геолокации
+                document.getElementById('locationPermission').style.display = 'flex';
+            }
         });
-
-        function initWeather() {
-            getWeatherData(currentCity);
-        }
 
         function initMap() {
             map = L.map('weather-map').setView([51.55, 43.17], 10);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
+            
+            // Добавляем слой осадков (симуляция)
+            L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=demo', {
+                attribution: '© OpenWeatherMap'
+            }).addTo(map);
         }
 
         function setupEventListeners() {
+            // Геолокация
+            document.getElementById('allowLocation').addEventListener('click', requestLocation);
+            document.getElementById('denyLocation').addEventListener('click', () => {
+                document.getElementById('locationPermission').style.display = 'none';
+                getWeatherData(currentCity);
+            });
+            
+            document.getElementById('location-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (userLocation) {
+                    getWeatherDataByCoords(userLocation.lat, userLocation.lon, 'Ваше местоположение');
+                } else {
+                    document.getElementById('locationPermission').style.display = 'flex';
+                }
+            });
+
             // Поиск
             document.getElementById('search-btn').addEventListener('click', handleSearch);
             document.getElementById('search-input').addEventListener('keypress', (e) => {
@@ -674,60 +852,138 @@
             // Обновление
             document.getElementById('refresh-btn').addEventListener('click', (e) => {
                 e.preventDefault();
-                getWeatherData(currentCity);
+                if (userLocation) {
+                    getWeatherDataByCoords(userLocation.lat, userLocation.lon, 'Ваше местоположение');
+                } else {
+                    getWeatherData(currentCity);
+                }
             });
 
-            // Установка
-            document.getElementById('install-icon').addEventListener('click', (e) => {
-                e.preventDefault();
-                showInstallPrompt();
+            // Опрос дождя
+            document.querySelectorAll('.poll-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.poll-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (this.dataset.answer === 'yes') {
+                        document.getElementById('poll-result').textContent = 'Спасибо за информацию! Дождь отмечен на карте.';
+                        // Добавляем маркер дождя на карту
+                        if (userLocation) {
+                            L.marker([userLocation.lat, userLocation.lon])
+                                .addTo(map)
+                                .bindPopup('Пользователь сообщил о дожде')
+                                .openPopup();
+                        }
+                    } else {
+                        document.getElementById('poll-result').textContent = 'В ближайшие 2 часа осадков не ожидается';
+                    }
+                });
             });
+        }
+
+        function requestLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude
+                        };
+                        localStorage.setItem('userLocation', JSON.stringify(userLocation));
+                        document.getElementById('locationPermission').style.display = 'none';
+                        getWeatherDataByCoords(userLocation.lat, userLocation.lon, 'Ваше местоположение');
+                    },
+                    function(error) {
+                        console.error('Ошибка геолокации:', error);
+                        document.getElementById('locationPermission').style.display = 'none';
+                        getWeatherData(currentCity);
+                    }
+                );
+            } else {
+                alert('Геолокация не поддерживается вашим браузером');
+                document.getElementById('locationPermission').style.display = 'none';
+                getWeatherData(currentCity);
+            }
         }
 
         function handleSearch() {
             const searchValue = document.getElementById('search-input').value.trim();
-            if (searchValue && CITIES[searchValue]) {
-                currentCity = searchValue;
-                getWeatherData(currentCity);
+            if (searchValue) {
+                // Используем OpenStreetMap Nominatim для поиска городов
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchValue)}&limit=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            const result = data[0];
+                            getWeatherDataByCoords(parseFloat(result.lat), parseFloat(result.lon), result.display_name);
+                        } else {
+                            alert('Город не найден');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка поиска:', error);
+                        alert('Ошибка при поиске города');
+                    });
             }
         }
 
-        async function getWeatherData(cityName) {
-            const { lat, lon } = CITIES[cityName];
-            
+        async function getWeatherDataByCoords(lat, lon, locationName) {
             try {
-                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`);
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode,precipitation&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`);
                 const data = await response.json();
-                updateWeatherUI(data, cityName);
-                updateMap(data);
+                currentWeatherData = data;
+                updateWeatherUI(data, locationName);
+                updateMap(data, lat, lon);
                 createWeatherAnimation(data.current_weather.weathercode);
+                checkForWarnings(data);
+                updateRainPoll(data);
             } catch (error) {
                 console.log('Используем fallback данные');
                 const fallbackData = generateWeatherData();
-                updateWeatherUI(fallbackData, cityName);
+                currentWeatherData = fallbackData;
+                updateWeatherUI(fallbackData, locationName);
                 createWeatherAnimation(fallbackData.current_weather.weathercode);
             }
         }
 
-        function updateWeatherUI(data, cityName) {
+        function getWeatherData(cityName) {
+            // Для известных городов используем заранее заданные координаты
+            const knownCities = {
+                'балашов': {lat: 51.55, lon: 43.17},
+                'саратов': {lat: 51.53, lon: 46.0},
+                'энгельс': {lat: 51.48, lon: 46.12},
+                'балаково': {lat: 52.02, lon: 47.8},
+                'вольск': {lat: 52.05, lon: 47.38},
+                'ртищево': {lat: 52.25, lon: 43.78},
+                'пугачев': {lat: 52.02, lon: 48.8},
+                'хопёрское': {lat: 51.47, lon: 43.68}
+            };
+
+            const lowerCityName = cityName.toLowerCase();
+            if (knownCities[lowerCityName]) {
+                const coords = knownCities[lowerCityName];
+                getWeatherDataByCoords(coords.lat, coords.lon, cityName);
+            } else {
+                // Для неизвестных городов используем поиск
+                handleSearch();
+            }
+        }
+
+        function updateWeatherUI(data, locationName) {
             const current = data.current_weather;
             
-            // Обновляем основную информацию
             document.getElementById('current-temp').textContent = `${Math.round(current.temperature)}°`;
-            document.getElementById('city-name').textContent = cityName;
+            document.getElementById('city-name').textContent = locationName;
             document.getElementById('weather-desc').textContent = getWeatherDescription(current.weathercode);
             document.getElementById('feels-like').textContent = `${Math.round(current.temperature - (current.windspeed / 2))}°`;
             
-            // Обновляем детали
             document.getElementById('wind-speed').textContent = `${current.windspeed} м/с`;
             document.getElementById('humidity').textContent = `${Math.floor(Math.random() * 40) + 50}%`;
             document.getElementById('pressure').textContent = `${750 + Math.floor(Math.random() * 20)} мм рт. ст.`;
             document.getElementById('visibility').textContent = `${5 + Math.floor(Math.random() * 15)} км`;
             
-            // Обновляем иконку
             document.getElementById('weather-icon').innerHTML = `<i class="fas ${getWeatherIcon(current.weathercode)}"></i>`;
             
-            // Обновляем прогнозы
             updateHourlyForecast(data.hourly);
             updateDailyForecast(data.daily);
         }
@@ -783,7 +1039,7 @@
             }
         }
 
-        function updateMap(weatherData) {
+        function updateMap(data, lat, lon) {
             if (map) {
                 map.eachLayer(layer => {
                     if (layer instanceof L.Marker) {
@@ -791,10 +1047,47 @@
                     }
                 });
                 
-                Object.entries(CITIES).forEach(([name, coords]) => {
-                    const marker = L.marker([coords.lat, coords.lon]).addTo(map);
-                    marker.bindPopup(`<b>${name}</b><br>Погода: ${getWeatherDescription(weatherData.current_weather.weathercode)}`);
-                });
+                // Центрируем карту на текущем местоположении
+                map.setView([lat, lon], 10);
+                
+                // Добавляем маркер текущего местоположения
+                L.marker([lat, lon])
+                    .addTo(map)
+                    .bindPopup(`<b>${document.getElementById('city-name').textContent}</b><br>${document.getElementById('weather-desc').textContent}<br>${document.getElementById('current-temp').textContent}`)
+                    .openPopup();
+            }
+        }
+
+        function checkForWarnings(data) {
+            const warningsContainer = document.getElementById('warnings-container');
+            const warningTitle = document.getElementById('warning-title');
+            const warningText = document.getElementById('warning-text');
+            
+            // Проверяем условия для предупреждений
+            if (data.current_weather.windspeed > 10) {
+                warningTitle.textContent = 'Сильный ветер';
+                warningText.textContent = 'Предупреждение Гидрометцентра России. Будьте осторожны при выходе на улицу.';
+                warningsContainer.style.display = 'block';
+            } else if (data.current_weather.temperature < -15) {
+                warningTitle.textContent = 'Сильный мороз';
+                warningText.textContent = 'Предупреждение Гидрометцентра России. Одевайтесь теплее.';
+                warningsContainer.style.display = 'block';
+            } else if (data.hourly.precipitation.some(p => p > 5)) {
+                warningTitle.textContent = 'Сильные осадки';
+                warningText.textContent = 'Предупреждение Гидрометцентра России. Возможны сильные осадки.';
+                warningsContainer.style.display = 'block';
+            } else {
+                warningsContainer.style.display = 'none';
+            }
+        }
+
+        function updateRainPoll(data) {
+            const rainPoll = document.getElementById('rain-poll');
+            // Показываем опрос если есть осадки или они ожидаются
+            if (data.current_weather.weathercode >= 50 || data.hourly.precipitation.some(p => p > 0)) {
+                rainPoll.style.display = 'block';
+            } else {
+                rainPoll.style.display = 'none';
             }
         }
 
@@ -803,7 +1096,6 @@
             animationContainer.innerHTML = '';
             
             if (weatherCode >= 50 && weatherCode < 70) {
-                // Дождь
                 for (let i = 0; i < 50; i++) {
                     const drop = document.createElement('div');
                     drop.className = 'rain-drop';
@@ -813,7 +1105,6 @@
                     animationContainer.appendChild(drop);
                 }
             } else if (weatherCode >= 70 && weatherCode < 90) {
-                // Снег
                 for (let i = 0; i < 30; i++) {
                     const snowflake = document.createElement('div');
                     snowflake.className = 'snowflake';
@@ -824,12 +1115,10 @@
                     animationContainer.appendChild(snowflake);
                 }
             } else if (weatherCode === 0) {
-                // Ясно
                 const sunRay = document.createElement('div');
                 sunRay.className = 'sun-ray';
                 animationContainer.appendChild(sunRay);
             } else {
-                // Облачно
                 for (let i = 0; i < 5; i++) {
                     const cloud = document.createElement('div');
                     cloud.className = 'cloud';
@@ -858,48 +1147,23 @@
 
         function getWeatherIcon(code) {
             const icons = {
-                0: 'fa-sun',           // Ясно
-                1: 'fa-cloud-sun',     // Преимущественно ясно
-                2: 'fa-cloud',         // Переменная облачность
-                3: 'fa-cloud',         // Пасмурно
-                45: 'fa-smog',         // Туман
-                48: 'fa-smog',         // Инейный туман
-                51: 'fa-cloud-rain',   // Легкая морось
-                53: 'fa-cloud-rain',   // Морось
-                55: 'fa-cloud-showers-heavy', // Сильная морось
-                61: 'fa-cloud-rain',   // Небольшой дождь
-                63: 'fa-cloud-showers-heavy', // Дождь
-                65: 'fa-cloud-showers-heavy', // Сильный дождь
-                71: 'fa-snowflake',    // Небольшой снег
-                73: 'fa-snowflake',    // Снег
-                75: 'fa-snowflake',    // Сильный снег
-                80: 'fa-cloud-showers-heavy', // Ливень
-                81: 'fa-cloud-showers-heavy', // Сильный ливень
-                82: 'fa-cloud-showers-heavy'  // Очень сильный ливень
+                0: 'fa-sun', 1: 'fa-cloud-sun', 2: 'fa-cloud', 3: 'fa-cloud',
+                45: 'fa-smog', 48: 'fa-smog', 51: 'fa-cloud-rain', 53: 'fa-cloud-rain',
+                55: 'fa-cloud-showers-heavy', 61: 'fa-cloud-rain', 63: 'fa-cloud-showers-heavy',
+                65: 'fa-cloud-showers-heavy', 71: 'fa-snowflake', 73: 'fa-snowflake',
+                75: 'fa-snowflake', 80: 'fa-cloud-showers-heavy', 81: 'fa-cloud-showers-heavy',
+                82: 'fa-cloud-showers-heavy'
             };
             return icons[code] || 'fa-cloud';
         }
 
         function getWeatherDescription(code) {
             const descriptions = {
-                0: 'Ясно',
-                1: 'Преимущественно ясно',
-                2: 'Переменная облачность',
-                3: 'Пасмурно',
-                45: 'Туман',
-                48: 'Инейный туман',
-                51: 'Легкая морось',
-                53: 'Морось',
-                55: 'Сильная морось',
-                61: 'Небольшой дождь',
-                63: 'Дождь',
-                65: 'Сильный дождь',
-                71: 'Небольшой снег',
-                73: 'Снег',
-                75: 'Сильный снег',
-                80: 'Ливень',
-                81: 'Сильный ливень',
-                82: 'Очень сильный ливень'
+                0: 'Ясно', 1: 'Преимущественно ясно', 2: 'Переменная облачность', 3: 'Пасмурно',
+                45: 'Туман', 48: 'Инейный туман', 51: 'Легкая морось', 53: 'Морось',
+                55: 'Сильная морось', 61: 'Небольшой дождь', 63: 'Дождь', 65: 'Сильный дождь',
+                71: 'Небольшой снег', 73: 'Снег', 75: 'Сильный снег', 80: 'Ливень',
+                81: 'Сильный ливень', 82: 'Очень сильный ливень'
             };
             return descriptions[code] || 'Облачно';
         }
@@ -916,7 +1180,8 @@
                 },
                 hourly: {
                     temperature_2m: Array(24).fill(0).map(() => baseTemp + Math.floor(Math.random() * 6 - 3)),
-                    weathercode: Array(24).fill(0).map(() => Math.floor(Math.random() * 10))
+                    weathercode: Array(24).fill(0).map(() => Math.floor(Math.random() * 10)),
+                    precipitation: Array(24).fill(0).map(() => Math.random() * 10)
                 },
                 daily: {
                     weathercode: Array(7).fill(0).map(() => Math.floor(Math.random() * 10)),
@@ -946,6 +1211,11 @@
 
             document.getElementById('closeInstall').addEventListener('click', () => {
                 document.getElementById('installPrompt').classList.remove('show');
+            });
+
+            document.getElementById('install-icon').addEventListener('click', (e) => {
+                e.preventDefault();
+                showInstallPrompt();
             });
         }
 
